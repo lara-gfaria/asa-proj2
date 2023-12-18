@@ -25,7 +25,8 @@ public:
     vector<int> DFS() {
         vector<Color> color(vertices + 1, WHITE);
         stack<int> vertexStack;
-        vector<int> orderedVertices;                           // list to store vertices in descending order of time
+        vector<int> orderedVertices(vertices, 0);                           // list to store vertices in descending order of time
+        int numV = vertices - 1;
 
         for (int v = 1; v <= vertices; v++) {
             if (color[v] == WHITE) {
@@ -46,106 +47,69 @@ public:
                     } 
                     else if (color[currentVertex] == GREY) {
                         color[currentVertex] = BLACK;
-                        orderedVertices.insert(orderedVertices.begin(), currentVertex);
+                        orderedVertices[numV] = currentVertex;
+                        numV--;
                     }
                 }
             }
         }
         return orderedVertices;
     }
-
-    vector<int> calculate_SCC(vector<int> orderedVertices, Graph tpGraph){
+    
+    int calculateMaxJump(Graph tpGraph){
+        // do DFS in original graph
+        vector<int> orderedVertices = DFS();                  // start DFS at vertex 1
+        
         vector<Color> color(vertices + 1, WHITE);
         stack<int> vertexStack;
+        vector<int> dp(vertices + 1, 0);                     // stores the max jumps for each subproblem (each vertex)   
+        vector<int> vertex_scc(vertices + 1, 0);
 
-        int scc = 1;
-        int number_vertices_scc = 0;
-        vector<int> vertex_scc (vertices + 1, 0);
+        int maxJump = 0;
+        int num_scc = 0;
 
-        // do DFS in transpose graph
-        for(const int& v: orderedVertices){
-            if (color[v] == WHITE) {
-                vertexStack.push(v);
-
+        for(const int& v: orderedVertices) {
+            num_scc ++;
+            vertexStack.push(v);
+            
+            
+            //if (color[v] == WHITE) {
+    
                 while (!vertexStack.empty()) {
                     int currentVertex = vertexStack.top();
-                    vertexStack.pop();
+                    vertex_scc[currentVertex] = num_scc;
 
                     if (color[currentVertex] == WHITE) {
                         color[currentVertex] = GREY;
-                        vertexStack.push(currentVertex);
-
-                        vertex_scc[currentVertex] = scc;
-                        number_vertices_scc++;
+                        //vertexStack.push(currentVertex);
 
                         for (int adjacentVertex : tpGraph.adjacencyList[currentVertex]) {
                             if (color[adjacentVertex] == WHITE){
                                 vertexStack.push(adjacentVertex);
-                                this->addConnection(currentVertex, adjacentVertex);
                             }
+                            else if(color[adjacentVertex] == BLACK) {
+                                if(vertex_scc[adjacentVertex] != vertex_scc[currentVertex])
+                                    dp[currentVertex] = max(dp[currentVertex], dp[adjacentVertex] + 1);
+                                else
+                                    dp[currentVertex] = max(dp[currentVertex], dp[adjacentVertex]);
+                                
+                            }
+                              
                         }
+                        maxJump = max(maxJump, dp[currentVertex]); 
                     }
 
                     else if (color[currentVertex] == GREY) {
                         color[currentVertex] = BLACK;
-                        number_vertices_scc--;
-                        if(number_vertices_scc == 0){
-                            scc++;
-                        }
+                        vertexStack.pop();
+                    }
+
+                    else if (color[currentVertex] == BLACK) {
+                        vertexStack.pop();
                     }
                 }
-            }        
-        }
-        return vertex_scc;
-    }
-    
-
-    int calculateMaxJump(Graph tpGraph){
-        // do DFS in original graph
-        vector<int> orderedVertices = DFS();                  // start DFS at vertex 1
-        vector<int> vertex_scc = calculate_SCC(orderedVertices, tpGraph);
-
-        vector<Color> color(vertices + 1, WHITE);
-        stack<int> vertexStack;
-
-        vector<int> dp(vertices + 1, 0);                     // stores the max jumps for each subproblem (each vertex)   
-        int maxJump = 0;
-
-        for (auto it = orderedVertices.rbegin(); it != orderedVertices.rend(); ++it) {
-            const int& v = *it;
-
-            if (color[v] == WHITE) {
-                vertexStack.push(v);
-
-                while (!vertexStack.empty()) {
-                    int currentVertex = vertexStack.top();
-                    vertexStack.pop();
-
-                    if (color[currentVertex] == WHITE) {
-                        color[currentVertex] = GREY;
-                        vertexStack.push(currentVertex);
-
-                        for (int adjacentVertex : this->adjacencyList[currentVertex]) {
-                            if (color[adjacentVertex] == WHITE){
-                                vertexStack.push(adjacentVertex);
-                            }
-                            if(vertex_scc[adjacentVertex] != vertex_scc[currentVertex]){
-                                dp[currentVertex] = max(dp[currentVertex], dp[adjacentVertex] + 1);
-                            }
-                            else{
-                                dp[currentVertex] = max(dp[currentVertex], dp[adjacentVertex]);
-                            }
-                            maxJump = max(maxJump, dp[currentVertex]);  
-                        }
-                    }
-
-                    else if (color[currentVertex] == GREY) {
-                        color[currentVertex] = BLACK;
-                    }
-                }
-            }        
-        }
-                
+           // }        
+        }         
         return maxJump;
     }
 };
