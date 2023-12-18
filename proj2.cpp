@@ -22,10 +22,10 @@ public:
         adjacencyList[u].push_back(v);
     }
 
-    list<int> DFS() {
+    vector<int> DFS() {
         vector<Color> color(vertices + 1, WHITE);
         stack<int> vertexStack;
-        list<int> orderedVertices;                           // list to store vertices in descending order of time
+        vector<int> orderedVertices;                           // list to store vertices in descending order of time
 
         for (int v = 1; v <= vertices; v++) {
             if (color[v] == WHITE) {
@@ -46,7 +46,7 @@ public:
                     } 
                     else if (color[currentVertex] == GREY) {
                         color[currentVertex] = BLACK;
-                        orderedVertices.push_front(currentVertex);
+                        orderedVertices.insert(orderedVertices.begin(), currentVertex);
                     }
                 }
             }
@@ -54,7 +54,7 @@ public:
         return orderedVertices;
     }
 
-    vector<int> calculate_SCC(list<int> orderedVertices, Graph tpGraph){
+    vector<int> calculate_SCC(vector<int> orderedVertices, Graph tpGraph){
         vector<Color> color(vertices + 1, WHITE);
         stack<int> vertexStack;
 
@@ -102,7 +102,7 @@ public:
 
     int calculateMaxJump(Graph tpGraph){
         // do DFS in original graph
-        list<int> orderedVertices = DFS();                  // start DFS at vertex 1
+        vector<int> orderedVertices = DFS();                  // start DFS at vertex 1
         vector<int> vertex_scc = calculate_SCC(orderedVertices, tpGraph);
 
         vector<Color> color(vertices + 1, WHITE);
