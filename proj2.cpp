@@ -68,12 +68,13 @@ public:
         int maxJump = 0;
         int num_scc = 0;
 
-        for(const int& v: orderedVertices) {
+        for (auto it = orderedVertices.rbegin(); it != orderedVertices.rend(); ++it) {
+            const int& v = *it;
             num_scc ++;
             vertexStack.push(v);
             
             
-            //if (color[v] == WHITE) {
+            if (color[v] == WHITE) {
     
                 while (!vertexStack.empty()) {
                     int currentVertex = vertexStack.top();
@@ -81,22 +82,21 @@ public:
 
                     if (color[currentVertex] == WHITE) {
                         color[currentVertex] = GREY;
-                        //vertexStack.push(currentVertex);
 
-                        for (int adjacentVertex : tpGraph.adjacencyList[currentVertex]) {
+                        for (int adjacentVertex : this->adjacencyList[currentVertex]) {
                             if (color[adjacentVertex] == WHITE){
                                 vertexStack.push(adjacentVertex);
+                                vertex_scc[adjacentVertex] = num_scc;
                             }
-                            else if(color[adjacentVertex] == BLACK) {
-                                if(vertex_scc[adjacentVertex] != vertex_scc[currentVertex])
-                                    dp[currentVertex] = max(dp[currentVertex], dp[adjacentVertex] + 1);
-                                else
-                                    dp[currentVertex] = max(dp[currentVertex], dp[adjacentVertex]);
-                                
+                            if(vertex_scc[adjacentVertex] != vertex_scc[currentVertex])
+                                dp[currentVertex] = max(dp[currentVertex], dp[adjacentVertex] + 1);
+                            else{
+                                dp[currentVertex] = max(dp[currentVertex], dp[adjacentVertex]);
+                                dp[adjacentVertex] = dp[currentVertex];
                             }
-                              
                         }
                         maxJump = max(maxJump, dp[currentVertex]); 
+                        
                     }
 
                     else if (color[currentVertex] == GREY) {
@@ -108,7 +108,7 @@ public:
                         vertexStack.pop();
                     }
                 }
-           // }        
+            }        
         }         
         return maxJump;
     }
